@@ -27,7 +27,8 @@ public class InvokeParameterisedMethod extends Statement {
     public InvokeParameterisedMethod(FrameworkMethod testMethod, Object testClass, Object params, int paramSetIdx) {
         this.testMethod = testMethod;
         this.testClass = testClass;
-        paramsAsString = Utils.stringify(params, paramSetIdx - 1);
+        Annotation[][] paramsAnnotations = testMethod.getMethod().getParameterAnnotations();
+        paramsAsString = Utils.testCaseResultRepresentation(params, paramSetIdx - 1, paramsAnnotations);
         try {
             if (params instanceof String)
                 this.params = castParamsFromString((String) params);
@@ -168,13 +169,24 @@ public class InvokeParameterisedMethod extends Statement {
         Object[] result = new Object[columns.length];
 
         for (int i = 0; i < columns.length; i++) {
-            if (parameterAnnotations[i].length == 0)
-                result[i] = castParameterDirectly(columns[i], expectedParameterTypes[i]);
-            else
+            if (parameterHasConverterAnnotation(parameterAnnotations[i])){
                 result[i] = castParameterUsingConverter(columns[i], parameterAnnotations[i]);
+            }else{
+                result[i] = castParameterDirectly(columns[i], expectedParameterTypes[i]);
+            }
         }
 
         return result;
+    }
+
+    private boolean parameterHasConverterAnnotation(Annotation[] parameterAnnotation) {
+        boolean hasConverter = false;
+        for (Annotation annotation : parameterAnnotation) {
+            if (annotation.annotationType().isAssignableFrom(ConvertParam.class)) {
+                hasConverter= true;
+            }
+        }
+        return hasConverter;
     }
 
     private Object castParameterUsingConverter(Object param, Annotation[] annotations) throws ConversionFailedException {

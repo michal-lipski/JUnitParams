@@ -90,12 +90,20 @@ public class TestMethod {
             for (int i = 0; i < params.length; i++) {
                 Object paramSet = params[i];
                 parametrised.addChild(
-                    Description.createTestDescription(testClass(), Utils.stringify(paramSet, i) + " (" + name() + ")", annotations()));
+                    Description.createTestDescription(testClass(), testCaseDescription(i, paramSet), annotations()));
             }
             return parametrised;
         } else {
             return Description.createTestDescription(testClass(), name(), annotations());
         }
+    }
+
+    private String testCaseDescription(int i, Object paramSet) {
+        return Utils.testCaseResultRepresentation(paramSet, i, parametersAnnotation()) + " (" + name() + ")";
+    }
+
+    private Annotation[][] parametersAnnotation() {
+        return frameworkMethod.getMethod().getParameterAnnotations();
     }
 
     private boolean describeFlat() {

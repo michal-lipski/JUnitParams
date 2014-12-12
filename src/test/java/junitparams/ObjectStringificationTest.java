@@ -3,6 +3,8 @@ package junitparams;
 import static junitparams.internal.Utils.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.lang.annotation.Annotation;
+
 import org.junit.*;
 import org.junit.runner.*;
 
@@ -11,18 +13,20 @@ import junitparams.internal.*;
 @RunWith(JUnitParamsRunner.class)
 public class ObjectStringificationTest {
 
+    private Annotation[][] noAnnotation = new Annotation[][]{};
+
     @Test
     public void stringifyString() throws Exception {
         String obj = "test";
 
-        assertThat(stringify(obj, 0)).isEqualTo("[0] test");
+        assertThat(testCaseResultRepresentation(obj, 0, noAnnotation)).isEqualTo("[0] test");
     }
 
     @Test
     public void stringifyClassWithToStringAndOneParam() throws Exception {
         ClassWithToString obj = new ClassWithToString("test");
 
-        assertThat(stringify(obj, 0)).isEqualTo("[0] test");
+        assertThat(testCaseResultRepresentation(obj, 0, noAnnotation)).isEqualTo("[0] test");
     }
 
     @Test
@@ -30,7 +34,7 @@ public class ObjectStringificationTest {
         ClassWithToString obj1 = new ClassWithToString("one");
         ClassWithToString obj2 = new ClassWithToString("two");
 
-        assertThat(stringify(new Object[] { obj1, obj2 }, 0)).isEqualTo("[0] one, two");
+        assertThat(testCaseResultRepresentation(new Object[]{obj1, obj2}, 0, noAnnotation)).isEqualTo("[0] one, two");
     }
 
     @Test
@@ -38,7 +42,7 @@ public class ObjectStringificationTest {
         ClassWithToString obj = new ClassWithToString("dupa") {
         };
 
-        assertThat(Utils.stringify(obj, 0)).isEqualTo("[0] dupa");
+        assertThat(Utils.testCaseResultRepresentation(obj, 0, noAnnotation)).isEqualTo("[0] dupa");
     }
 
     private class ClassWithToString {
@@ -61,7 +65,7 @@ public class ObjectStringificationTest {
     }
 
     public Object[] parametersForShouldCreateParameterObjectsOnce() {
-        return new Object[] { new A() };
+        return new Object[]{new A()};
     }
 
     class A {

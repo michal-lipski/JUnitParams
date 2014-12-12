@@ -1,6 +1,9 @@
 package junitparams.internal;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
+
+import junitparams.Named;
 
 /**
  * Some String utils to handle parameterised tests' results.
@@ -10,17 +13,45 @@ import java.lang.reflect.*;
 public class Utils {
     public static final String REGEX_ALL_NEWLINES = "(\\r\\n|\\n|\\r)";
 
-    public static String stringify(Object paramSet, int paramIdx) {
+    public static String testCaseResultRepresentation(Object paramSet, int paramIdx, Annotation[][] parameterAnnotations) {
         String result = "[" + paramIdx + "] ";
 
-        if (paramSet == null)
+        if (paramSet == null) {
             result += "null";
-        else if (paramSet instanceof String)
-            result += paramSet;
-        else
+        } else if (paramSet instanceof String) {
+            result += appendParamsValues(paramSet, parameterAnnotations);
+        } else {
             result += asCsvString(safelyCastParamsToArray(paramSet), paramIdx);
+        }
 
         return trimSpecialChars(result);
+    }
+
+    private static String appendParamsValues(Object paramSet, Annotation[][] parameterAnnotations) {
+
+        String[] paramsValues = ((String) paramSet).split(",");
+
+        StringBuilder testCaseName = new StringBuilder();
+
+        for (int i = 0; i < paramsValues.length; i++) {
+            StringBuilder paramDisplay = new StringBuilder();
+            if (parameterAnnotations.length >= i + 1) {
+                for (Annotation annotation : parameterAnnotations[i]) {
+                    if (annotation.annotationType().equals(Named.class) && ((Named) annotation).value() != null) {
+                        String paramNameFromAnnotation = ((Named) annotation).value();
+                        paramDisplay.append(paramNameFromAnnotation).append(":");
+                    }
+                }
+            }
+
+            paramDisplay.append(paramsValues[i]);
+            if (i != paramsValues.length-1) {
+                paramDisplay.append(",");
+            }
+            testCaseName.append(paramDisplay);
+        }
+
+        return testCaseName.toString();
     }
 
     private static String trimSpecialChars(String result) {
